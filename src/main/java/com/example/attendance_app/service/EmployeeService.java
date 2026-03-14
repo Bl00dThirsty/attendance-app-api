@@ -2,6 +2,7 @@ package com.example.attendance_app.service;
 
 import com.example.attendance_app.dto.employee.EmployeeCreateRequest;
 import com.example.attendance_app.dto.employee.EmployeeResponse;
+import com.example.attendance_app.entity.Department;
 import com.example.attendance_app.entity.Employee;
 import com.example.attendance_app.entity.EmployeeRole;
 import com.example.attendance_app.exception.ConflictException;
@@ -17,9 +18,11 @@ import java.util.List;
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final DepartmentService departmentService;
 
-    public EmployeeService(EmployeeRepository employeeRepository) {
+    public EmployeeService(EmployeeRepository employeeRepository, DepartmentService departmentService) {
         this.employeeRepository = employeeRepository;
+        this.departmentService = departmentService;
     }
 
     public EmployeeResponse createEmployee(EmployeeCreateRequest request) {
@@ -35,6 +38,14 @@ public class EmployeeService {
         employee.setFirstName(request.firstName().trim());
         employee.setLastName(request.lastName().trim());
         employee.setEmail(request.email().trim().toLowerCase());
+        if (request.position() != null) {
+            String trimmedPosition = request.position().trim();
+            employee.setPosition(trimmedPosition.isEmpty() ? null : trimmedPosition);
+        }
+        if (request.departmentId() != null) {
+            Department department = departmentService.getDepartmentEntity(request.departmentId());
+            employee.setDepartment(department);
+        }
         employee.setRole(request.role() == null ? EmployeeRole.EMPLOYEE : request.role());
         employee.setActive(request.active() == null || request.active());
 
@@ -62,12 +73,17 @@ public class EmployeeService {
     }
 
     private EmployeeResponse mapToResponse(Employee employee) {
+        Department department = employee.getDepartment();
         return new EmployeeResponse(
             employee.getId(),
             employee.getEmployeeCode(),
             employee.getFirstName(),
             employee.getLastName(),
             employee.getEmail(),
+            employee.getPosition(),
+            department == null ? null : department.getId(),
+            department == null ? null : department.getCode(),
+            department == null ? null : department.getName(),
             employee.getRole(),
             employee.isActive(),
             employee.getCreatedAt(),

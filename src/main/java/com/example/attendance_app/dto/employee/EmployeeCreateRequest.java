@@ -23,6 +23,11 @@ public record EmployeeCreateRequest(
     @Size(max = 150, message = "email must not exceed 150 characters")
     String email,
 
+    @Size(max = 120, message = "position must not exceed 120 characters")
+    String position,
+
+    Long departmentId,
+
     EmployeeRole role,
 
     Boolean active

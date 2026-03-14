@@ -37,7 +37,12 @@ Main entities:
 
 - `Employee`
   - `employeeCode`, `firstName`, `lastName`, `email`
+  - `position` (job title)
+  - optional relation to `Department`
   - `role`: `EMPLOYEE`, `HR`, `ADMIN`
+  - `active`
+- `Department`
+  - `code`, `name`
   - `active`
 - `CompanySite`
   - `code`, `name`, `address`
@@ -58,6 +63,8 @@ Authorization matrix:
 
 - `POST /api/employees` -> `ADMIN`, `HR`
 - `GET /api/employees/**` -> `ADMIN`, `HR`
+- `POST /api/departments` -> `ADMIN`
+- `GET /api/departments/**` -> `ADMIN`
 - `POST /api/sites` -> `ADMIN`, `HR`
 - `GET /api/sites/**` -> `ADMIN`, `HR`, `EMPLOYEE`
 - `POST /api/attendance/check-in` -> `ADMIN`, `HR`, `EMPLOYEE`
@@ -123,6 +130,18 @@ Important: Java 21 is mandatory for compilation.
 
 ## Example Requests
 
+Create department as admin:
+
+```bash
+curl -u admin:admin123 -X POST http://localhost:8080/api/departments \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "HR",
+    "name": "Human Resources",
+    "active": true
+  }'
+```
+
 Create employee as admin:
 
 ```bash
@@ -133,6 +152,8 @@ curl -u admin:admin123 -X POST http://localhost:8080/api/employees \
     "firstName": "John",
     "lastName": "Doe",
     "email": "john.doe@company.com",
+    "position": "HR Manager",
+    "departmentId": 1,
     "role": "HR",
     "active": true
   }'
