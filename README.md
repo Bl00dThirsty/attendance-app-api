@@ -37,9 +37,15 @@ Main entities:
 
 - `Employee`
   - `employeeCode`, `firstName`, `lastName`, `email`
-  - `position` (job title)
-  - optional relation to `Department`
+  - optional relations to `JobPosition` and `Department`
+  - HR/personnel fields: `hireDate`, `birthDate`, `birthPlace`, `contractType`, `employeeType`, `maritalStatus`, `gender`
+  - residence and contact fields: `cityOfResidence`, `district`, `address`, `phoneNumber`, emergency contact
+  - identity fields: `nationality`, `nationalIdNumber`
+  - contract lifecycle: `contractStartDate`, `contractEndDate`
   - `role`: `EMPLOYEE`, `HR`, `ADMIN`
+  - `active`
+- `JobPosition`
+  - `code`, `name`, optional `description`
   - `active`
 - `Department`
   - `code`, `name`
@@ -61,11 +67,19 @@ Authentication is HTTP Basic with in-memory demo users:
 
 Authorization matrix:
 
-- `POST /api/employees` -> `ADMIN`, `HR`
+- `POST /api/employees` -> `ADMIN`
+- `PUT /api/employees/{id}` -> `ADMIN`
+- `DELETE /api/employees/{id}` -> `ADMIN`
 - `GET /api/employees/**` -> `ADMIN`, `HR`
 - `POST /api/departments` -> `ADMIN`
 - `GET /api/departments/**` -> `ADMIN`
-- `POST /api/sites` -> `ADMIN`, `HR`
+- `POST /api/positions` -> `ADMIN`
+- `PUT /api/positions/{id}` -> `ADMIN`
+- `DELETE /api/positions/{id}` -> `ADMIN`
+- `GET /api/positions/**` -> `ADMIN`, `HR`
+- `POST /api/sites` -> `ADMIN`
+- `PUT /api/sites/{id}` -> `ADMIN`
+- `DELETE /api/sites/{id}` -> `ADMIN`
 - `GET /api/sites/**` -> `ADMIN`, `HR`, `EMPLOYEE`
 - `POST /api/attendance/check-in` -> `ADMIN`, `HR`, `EMPLOYEE`
 - `GET /api/attendance/**` -> `ADMIN`, `HR`
@@ -102,6 +116,39 @@ Windows:
 API base URL:
 
 - `http://localhost:8080`
+
+## Run With Docker
+
+Build the image:
+
+```bash
+docker build -t attendance-app-api .
+```
+
+Run the container:
+
+```bash
+docker run --rm -p 8080:8080 --name attendance-app-api attendance-app-api
+```
+
+Run with Docker Compose (recommended):
+
+```bash
+docker compose up --build -d
+```
+
+Stop Docker Compose:
+
+```bash
+docker compose down
+```
+
+Notes:
+
+- Compose stores H2 data in a Docker volume (`attendance-h2-data`) using file mode.
+- API stays available at `http://localhost:8080`.
+- Swagger: `http://localhost:8080/swagger-ui.html`
+- H2 console: `http://localhost:8080/h2-console`
 
 ## API and Tools
 
@@ -142,6 +189,19 @@ curl -u admin:admin123 -X POST http://localhost:8080/api/departments \
   }'
 ```
 
+Create position as admin:
+
+```bash
+curl -u admin:admin123 -X POST http://localhost:8080/api/positions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "HR_MANAGER",
+    "name": "HR Manager",
+    "description": "Leads HR operations",
+    "active": true
+  }'
+```
+
 Create employee as admin:
 
 ```bash
@@ -152,8 +212,23 @@ curl -u admin:admin123 -X POST http://localhost:8080/api/employees \
     "firstName": "John",
     "lastName": "Doe",
     "email": "john.doe@company.com",
-    "position": "HR Manager",
+    "positionId": 1,
     "departmentId": 1,
+    "hireDate": "2025-01-02",
+    "birthDate": "1996-03-14",
+    "birthPlace": "Douala",
+    "contractType": "CDI",
+    "employeeType": "FULL_TIME",
+    "maritalStatus": "MARRIED",
+    "gender": "MALE",
+    "cityOfResidence": "Douala",
+    "district": "Bonapriso",
+    "nationality": "Cameroonian",
+    "phoneNumber": "+237690000000",
+    "address": "Bonapriso, Douala",
+    "contractStartDate": "2025-01-02",
+    "emergencyContactName": "Jane Doe",
+    "emergencyContactPhone": "+237691111111",
     "role": "HR",
     "active": true
   }'
