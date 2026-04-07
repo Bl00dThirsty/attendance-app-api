@@ -30,6 +30,15 @@ public class SiteController {
         this.siteService = siteService;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Create a company site
+    ----------------------------------------------------------------
+    @parameter: SiteCreateRequest request
+    @Returnvalue: SiteResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create company site")
@@ -37,12 +46,30 @@ public class SiteController {
         return siteService.createSite(request);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Update a company site by id
+    ----------------------------------------------------------------
+    @parameter: Long id, SiteCreateRequest request
+    @Returnvalue: SiteResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @PutMapping("/{id}")
     @Operation(summary = "Update company site")
     public SiteResponse updateSite(@PathVariable Long id, @Valid @RequestBody SiteCreateRequest request) {
         return siteService.updateSite(id, request);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Delete a company site by id
+    ----------------------------------------------------------------
+    @parameter: Long id
+    @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete company site")
@@ -50,12 +77,30 @@ public class SiteController {
         siteService.deleteSite(id);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Retrieve all company sites
+    ----------------------------------------------------------------
+    @parameter: -
+    @Returnvalue: List<SiteResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping
     @Operation(summary = "List company sites")
     public List<SiteResponse> getSites() {
         return siteService.getSites();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Retrieve one company site by id
+    ----------------------------------------------------------------
+    @parameter: Long id
+    @Returnvalue: SiteResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping("/{id}")
     @Operation(summary = "Get site by ID")
     public SiteResponse getSite(@PathVariable Long id) {

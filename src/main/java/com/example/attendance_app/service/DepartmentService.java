@@ -21,6 +21,12 @@ public class DepartmentService {
         this.departmentRepository = departmentRepository;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Create a department after uniqueness checks
+            ----------------------------------------------------------------
+            @parameter: DepartmentCreateRequest request
+            @Returnvalue: DepartmentResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public DepartmentResponse createDepartment(DepartmentCreateRequest request) {
         if (departmentRepository.existsByCodeIgnoreCase(request.code())) {
             throw new ConflictException("Department code already exists");
@@ -37,6 +43,12 @@ public class DepartmentService {
         return mapToResponse(departmentRepository.save(department));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve one department by id
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: DepartmentResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public DepartmentResponse getDepartment(Long id) {
         Department department = departmentRepository.findById(id)
@@ -44,6 +56,12 @@ public class DepartmentService {
         return mapToResponse(department);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve all departments
+            ----------------------------------------------------------------
+            @parameter: -
+            @Returnvalue: List<DepartmentResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public List<DepartmentResponse> getDepartments() {
         return departmentRepository.findAll().stream()
@@ -51,12 +69,24 @@ public class DepartmentService {
             .toList();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve raw department entity by id
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: Department
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public Department getDepartmentEntity(Long id) {
         return departmentRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + id));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Convert department entity to response DTO
+            ----------------------------------------------------------------
+            @parameter: Department department
+            @Returnvalue: DepartmentResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private DepartmentResponse mapToResponse(Department department) {
         return new DepartmentResponse(
             department.getId(),

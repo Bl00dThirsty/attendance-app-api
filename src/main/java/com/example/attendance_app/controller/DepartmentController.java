@@ -28,6 +28,15 @@ public class DepartmentController {
         this.departmentService = departmentService;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Create a new department
+    ---------------------------------------------------------------
+    @parameter: DepartmentCreateRequest request
+    @Returnvalue: DepartmentResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create department")
@@ -35,12 +44,30 @@ public class DepartmentController {
         return departmentService.createDepartment(request);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Retrieve all departments
+    ----------------------------------------------------------------
+    @parameter: -
+    @Returnvalue: List<DepartmentResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping
     @Operation(summary = "List departments")
     public List<DepartmentResponse> getDepartments() {
         return departmentService.getDepartments();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Retrieve one department by id
+    ----------------------------------------------------------------
+    @parameter: Long id
+    @Returnvalue: DepartmentResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping("/{id}")
     @Operation(summary = "Get department by ID")
     public DepartmentResponse getDepartment(@PathVariable Long id) {

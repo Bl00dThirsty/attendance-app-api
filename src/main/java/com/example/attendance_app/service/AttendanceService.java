@@ -38,6 +38,12 @@ public class AttendanceService {
         this.siteService = siteService;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Record a check-in and evaluate geofence status
+            ----------------------------------------------------------------
+            @parameter: AttendanceCheckInRequest request
+            @Returnvalue: AttendanceResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public AttendanceResponse recordCheckIn(AttendanceCheckInRequest request) {
         boolean hasLatitude = request.latitude() != null;
         boolean hasLongitude = request.longitude() != null;
@@ -55,6 +61,7 @@ public class AttendanceService {
             throw new BadRequestException("Site is inactive and cannot accept check-ins");
         }
 
+        // Fallback defaults when client omits optional check-in metadata.
         LocalDateTime arrivalTime = request.arrivalTime() == null ? LocalDateTime.now() : request.arrivalTime();
         AttendanceSource source = request.checkInSource() == null ? AttendanceSource.MOBILE_APP : request.checkInSource();
 
@@ -66,6 +73,7 @@ public class AttendanceService {
             site.getLongitude() != null &&
             site.getGeofenceRadiusMeters() != null
         ) {
+            // Compute geofence distance only when all required coordinates are available.
             distanceMeters = calculateDistanceMeters(
                 site.getLatitude(),
                 site.getLongitude(),
@@ -91,6 +99,12 @@ public class AttendanceService {
         return mapToResponse(attendanceRecordRepository.save(record));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve one attendance record by id
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: AttendanceResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public AttendanceResponse getAttendanceById(Long id) {
         AttendanceRecord record = attendanceRecordRepository.findById(id)
@@ -98,6 +112,12 @@ public class AttendanceService {
         return mapToResponse(record);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Search attendance with optional filters
+            ----------------------------------------------------------------
+            @parameter: employeeId, siteId, from, to
+            @Returnvalue: List<AttendanceResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public List<AttendanceResponse> searchAttendance(
         Long employeeId,
@@ -105,6 +125,7 @@ public class AttendanceService {
         LocalDateTime from,
         LocalDateTime to
     ) {
+        // Start from a neutral predicate, then append optional constraints.
         Specification<AttendanceRecord> specification = (root, query, cb) -> cb.conjunction();
 
         if (employeeId != null) {
@@ -125,6 +146,12 @@ public class AttendanceService {
             .toList();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Map entity model to API response DTO
+            ----------------------------------------------------------------
+            @parameter: AttendanceRecord record
+            @Returnvalue: AttendanceResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private AttendanceResponse mapToResponse(AttendanceRecord record) {
         Boolean withinSiteRange = null;
         if (record.getStatus() == AttendanceStatus.ON_SITE) {
@@ -151,6 +178,12 @@ public class AttendanceService {
         );
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Calculate distance between two points in meters
+            ----------------------------------------------------------------
+            @parameter: lat1, lon1, lat2, lon2
+            @Returnvalue: double
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private double calculateDistanceMeters(double lat1, double lon1, double lat2, double lon2) {
         double lat1Rad = Math.toRadians(lat1);
         double lat2Rad = Math.toRadians(lat2);

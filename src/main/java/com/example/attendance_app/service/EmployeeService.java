@@ -37,6 +37,12 @@ public class EmployeeService {
         this.attendanceRecordRepository = attendanceRecordRepository;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Create a new employee with validations
+            ----------------------------------------------------------------
+            @parameter: EmployeeCreateRequest request
+            @Returnvalue: EmployeeResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public EmployeeResponse createEmployee(EmployeeCreateRequest request) {
         Employee employee = new Employee();
         String employeeCode = request.employeeCode().trim();
@@ -50,6 +56,12 @@ public class EmployeeService {
         return mapToResponse(employeeRepository.save(employee));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Update employee by id with business checks
+            ----------------------------------------------------------------
+            @parameter: Long id, EmployeeCreateRequest request
+            @Returnvalue: EmployeeResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public EmployeeResponse updateEmployee(Long id, EmployeeCreateRequest request) {
         Employee employee = employeeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Employee not found: " + id));
@@ -69,6 +81,12 @@ public class EmployeeService {
         return mapToResponse(employeeRepository.save(employee));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Delete employee if no attendance references
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public void deleteEmployee(Long id) {
         Employee employee = employeeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Employee not found: " + id));
@@ -80,6 +98,12 @@ public class EmployeeService {
         employeeRepository.delete(employee);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve one employee by id
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: EmployeeResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public EmployeeResponse getEmployee(Long id) {
         Employee employee = employeeRepository.findById(id)
@@ -87,6 +111,12 @@ public class EmployeeService {
         return mapToResponse(employee);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve all employees
+            ----------------------------------------------------------------
+            @parameter: -
+            @Returnvalue: List<EmployeeResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public List<EmployeeResponse> getEmployees() {
         return employeeRepository.findAll().stream()
@@ -94,13 +124,26 @@ public class EmployeeService {
             .toList();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve raw employee entity by id
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: Employee
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public Employee getEmployeeEntity(Long id) {
         return employeeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Employee not found: " + id));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Apply normalized request data to employee entity
+            ----------------------------------------------------------------
+            @parameter: employee, request, employeeCode, email
+            @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private void applyEmployeeData(Employee employee, EmployeeCreateRequest request, String employeeCode, String email) {
+        // Validate date consistency before assigning values.
         validateDateConsistency(request);
 
         employee.setEmployeeCode(employeeCode);
@@ -128,6 +171,12 @@ public class EmployeeService {
         employee.setContractEndDate(request.contractEndDate());
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Validate chronology between HR-related dates
+            ----------------------------------------------------------------
+            @parameter: EmployeeCreateRequest request
+            @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private void validateDateConsistency(EmployeeCreateRequest request) {
         if (
             request.birthDate() != null &&
@@ -154,6 +203,12 @@ public class EmployeeService {
         }
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Ensure employee code and email remain unique
+            ----------------------------------------------------------------
+            @parameter: employeeCode, email, employeeId
+            @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private void validateUniqueFields(String employeeCode, String email, Long employeeId) {
         boolean duplicateCode = employeeId == null
             ? employeeRepository.existsByEmployeeCodeIgnoreCase(employeeCode)
@@ -170,6 +225,12 @@ public class EmployeeService {
         }
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Resolve optional job position reference
+            ----------------------------------------------------------------
+            @parameter: Long positionId
+            @Returnvalue: JobPosition
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private JobPosition resolvePosition(Long positionId) {
         if (positionId == null) {
             return null;
@@ -177,6 +238,12 @@ public class EmployeeService {
         return jobPositionService.getPositionEntity(positionId);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Resolve optional department reference
+            ----------------------------------------------------------------
+            @parameter: Long departmentId
+            @Returnvalue: Department
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private Department resolveDepartment(Long departmentId) {
         if (departmentId == null) {
             return null;
@@ -184,6 +251,12 @@ public class EmployeeService {
         return departmentService.getDepartmentEntity(departmentId);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Trim optional text and convert blanks to null
+            ----------------------------------------------------------------
+            @parameter: String value
+            @Returnvalue: String
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private String normalizeOptionalText(String value) {
         if (value == null) {
             return null;
@@ -192,6 +265,12 @@ public class EmployeeService {
         return trimmedValue.isEmpty() ? null : trimmedValue;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Convert employee entity to response DTO
+            ----------------------------------------------------------------
+            @parameter: Employee employee
+            @Returnvalue: EmployeeResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private EmployeeResponse mapToResponse(Employee employee) {
         JobPosition position = employee.getPosition();
         Department department = employee.getDepartment();

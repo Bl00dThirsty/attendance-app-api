@@ -30,6 +30,15 @@ public class JobPositionController {
         this.jobPositionService = jobPositionService;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Create a new job position
+    ----------------------------------------------------------------
+    @parameter: JobPositionCreateRequest request
+    @Returnvalue: JobPositionResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create position")
@@ -37,12 +46,30 @@ public class JobPositionController {
         return jobPositionService.createPosition(request);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Update a job position by id
+    ----------------------------------------------------------------
+    @parameter: Long id, JobPositionCreateRequest request
+    @Returnvalue: JobPositionResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @PutMapping("/{id}")
     @Operation(summary = "Update position")
     public JobPositionResponse updatePosition(@PathVariable Long id, @Valid @RequestBody JobPositionCreateRequest request) {
         return jobPositionService.updatePosition(id, request);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Delete a job position by id
+    ----------------------------------------------------------------
+    @parameter: Long id
+    @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete position")
@@ -50,12 +77,30 @@ public class JobPositionController {
         jobPositionService.deletePosition(id);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Retrieve all job positions
+    ----------------------------------------------------------------
+    @parameter: -
+    @Returnvalue: List<JobPositionResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping
     @Operation(summary = "List positions")
     public List<JobPositionResponse> getPositions() {
         return jobPositionService.getPositions();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Retrieve one job position by id
+    ----------------------------------------------------------------
+    @parameter: Long id
+    @Returnvalue: JobPositionResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping("/{id}")
     @Operation(summary = "Get position by ID")
     public JobPositionResponse getPosition(@PathVariable Long id) {

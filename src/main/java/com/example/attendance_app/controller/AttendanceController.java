@@ -32,6 +32,15 @@ public class AttendanceController {
         this.attendanceService = attendanceService;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Create a new attendance check-in
+    ----------------------------------------------------------------
+    @parameter: AttendanceCheckInRequest request
+    @Returnvalue: AttendanceResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @PostMapping("/check-in")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Record employee check-in")
@@ -39,12 +48,30 @@ public class AttendanceController {
         return attendanceService.recordCheckIn(request);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Fetch one attendance record by identifier
+    ----------------------------------------------------------------
+    @parameter: Long id
+    @Returnvalue: AttendanceResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping("/{id}")
     @Operation(summary = "Get attendance record by ID")
     public AttendanceResponse getAttendanceById(@PathVariable Long id) {
         return attendanceService.getAttendanceById(id);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Search attendance records with optional filters
+    ----------------------------------------------------------------
+    @parameter: employeeId, siteId, from, to
+    @Returnvalue: List<AttendanceResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping
     @Operation(summary = "Search attendance records")
     public List<AttendanceResponse> searchAttendance(

@@ -8,6 +8,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Configure OpenAPI metadata
+    ----------------------------------------------------------------
+    @parameter: -
+    @Returnvalue: OpenAPI
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Bean
     OpenAPI attendanceOpenApi() {
         return new OpenAPI()

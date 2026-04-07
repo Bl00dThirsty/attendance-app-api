@@ -28,6 +28,12 @@ public class SiteService {
         this.attendanceRecordRepository = attendanceRecordRepository;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Create a company site with coordinate checks
+            ----------------------------------------------------------------
+            @parameter: SiteCreateRequest request
+            @Returnvalue: SiteResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public SiteResponse createSite(SiteCreateRequest request) {
         String code = request.code().trim();
         validateUniqueCode(code, null);
@@ -39,12 +45,19 @@ public class SiteService {
         site.setAddress(request.address().trim());
         site.setLatitude(request.latitude());
         site.setLongitude(request.longitude());
+        // Use a default geofence when client does not provide one.
         site.setGeofenceRadiusMeters(request.geofenceRadiusMeters() == null ? 100 : request.geofenceRadiusMeters());
         site.setActive(request.active() == null || request.active());
 
         return mapToResponse(companySiteRepository.save(site));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Update a site by id and apply validations
+            ----------------------------------------------------------------
+            @parameter: Long id, SiteCreateRequest request
+            @Returnvalue: SiteResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public SiteResponse updateSite(Long id, SiteCreateRequest request) {
         CompanySite site = companySiteRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Site not found: " + id));
@@ -68,6 +81,12 @@ public class SiteService {
         return mapToResponse(companySiteRepository.save(site));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Delete a site if no attendance depends on it
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public void deleteSite(Long id) {
         CompanySite site = companySiteRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Site not found: " + id));
@@ -79,6 +98,12 @@ public class SiteService {
         companySiteRepository.delete(site);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve one site by id
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: SiteResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public SiteResponse getSite(Long id) {
         CompanySite site = companySiteRepository.findById(id)
@@ -86,6 +111,12 @@ public class SiteService {
         return mapToResponse(site);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve all company sites
+            ----------------------------------------------------------------
+            @parameter: -
+            @Returnvalue: List<SiteResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public List<SiteResponse> getSites() {
         return companySiteRepository.findAll().stream()
@@ -93,12 +124,24 @@ public class SiteService {
             .toList();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve raw site entity by id
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: CompanySite
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public CompanySite getSiteEntity(Long id) {
         return companySiteRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Site not found: " + id));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Enforce uniqueness of site code
+            ----------------------------------------------------------------
+            @parameter: code, siteId
+            @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private void validateUniqueCode(String code, Long siteId) {
         boolean duplicateCode = siteId == null
             ? companySiteRepository.existsByCodeIgnoreCase(code)
@@ -108,6 +151,12 @@ public class SiteService {
         }
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Validate latitude/longitude completeness
+            ----------------------------------------------------------------
+            @parameter: latitude, longitude
+            @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private void validateCoordinates(Double latitude, Double longitude) {
         boolean hasLatitude = latitude != null;
         boolean hasLongitude = longitude != null;
@@ -116,6 +165,12 @@ public class SiteService {
         }
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Convert site entity to response DTO
+            ----------------------------------------------------------------
+            @parameter: CompanySite site
+            @Returnvalue: SiteResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private SiteResponse mapToResponse(CompanySite site) {
         return new SiteResponse(
             site.getId(),

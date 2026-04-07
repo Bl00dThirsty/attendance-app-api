@@ -30,6 +30,15 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Create a new employee
+    ----------------------------------------------------------------
+    @parameter: EmployeeCreateRequest request
+    @Returnvalue: EmployeeResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create employee")
@@ -37,12 +46,30 @@ public class EmployeeController {
         return employeeService.createEmployee(request);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Update employee data by id
+    ----------------------------------------------------------------
+    @parameter: Long id, EmployeeCreateRequest request
+    @Returnvalue: EmployeeResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @PutMapping("/{id}")
     @Operation(summary = "Update employee")
     public EmployeeResponse updateEmployee(@PathVariable Long id, @Valid @RequestBody EmployeeCreateRequest request) {
         return employeeService.updateEmployee(id, request);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Delete an employee by id
+    ----------------------------------------------------------------
+    @parameter: Long id
+    @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete employee")
@@ -50,12 +77,30 @@ public class EmployeeController {
         employeeService.deleteEmployee(id);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Retrieve all employees
+    ----------------------------------------------------------------
+    @parameter: -
+    @Returnvalue: List<EmployeeResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping
     @Operation(summary = "List employees")
     public List<EmployeeResponse> getEmployees() {
         return employeeService.getEmployees();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Retrieve one employee by id
+    ----------------------------------------------------------------
+    @parameter: Long id
+    @Returnvalue: EmployeeResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping("/{id}")
     @Operation(summary = "Get employee by ID")
     public EmployeeResponse getEmployee(@PathVariable Long id) {

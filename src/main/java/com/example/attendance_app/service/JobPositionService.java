@@ -24,6 +24,12 @@ public class JobPositionService {
         this.employeeRepository = employeeRepository;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Create a job position after uniqueness checks
+            ----------------------------------------------------------------
+            @parameter: JobPositionCreateRequest request
+            @Returnvalue: JobPositionResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public JobPositionResponse createPosition(JobPositionCreateRequest request) {
         String code = request.code().trim();
         String name = request.name().trim();
@@ -38,6 +44,12 @@ public class JobPositionService {
         return mapToResponse(jobPositionRepository.save(position));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Update a job position by id
+            ----------------------------------------------------------------
+            @parameter: Long id, JobPositionCreateRequest request
+            @Returnvalue: JobPositionResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public JobPositionResponse updatePosition(Long id, JobPositionCreateRequest request) {
         JobPosition position = jobPositionRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Position not found: " + id));
@@ -56,6 +68,12 @@ public class JobPositionService {
         return mapToResponse(jobPositionRepository.save(position));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Delete a position if not linked to employees
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     public void deletePosition(Long id) {
         JobPosition position = jobPositionRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Position not found: " + id));
@@ -67,12 +85,24 @@ public class JobPositionService {
         jobPositionRepository.delete(position);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve one position by id
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: JobPositionResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public JobPositionResponse getPosition(Long id) {
         JobPosition position = getPositionEntity(id);
         return mapToResponse(position);
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve all positions
+            ----------------------------------------------------------------
+            @parameter: -
+            @Returnvalue: List<JobPositionResponse>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public List<JobPositionResponse> getPositions() {
         return jobPositionRepository.findAll().stream()
@@ -80,12 +110,24 @@ public class JobPositionService {
             .toList();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Retrieve raw position entity by id
+            ----------------------------------------------------------------
+            @parameter: Long id
+            @Returnvalue: JobPosition
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
     public JobPosition getPositionEntity(Long id) {
         return jobPositionRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Position not found: " + id));
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Validate unique code and unique name
+            ----------------------------------------------------------------
+            @parameter: code, name, id
+            @Returnvalue: -
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private void validateUniqueness(String code, String name, Long id) {
         boolean codeExists = id == null
             ? jobPositionRepository.existsByCodeIgnoreCase(code)
@@ -102,6 +144,12 @@ public class JobPositionService {
         }
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Normalize optional textual input
+            ----------------------------------------------------------------
+            @parameter: String value
+            @Returnvalue: String
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private String normalizeOptionalText(String value) {
         if (value == null) {
             return null;
@@ -110,6 +158,12 @@ public class JobPositionService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Convert position entity to response DTO
+            ----------------------------------------------------------------
+            @parameter: JobPosition position
+            @Returnvalue: JobPositionResponse
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     private JobPositionResponse mapToResponse(JobPosition position) {
         return new JobPositionResponse(
             position.getId(),

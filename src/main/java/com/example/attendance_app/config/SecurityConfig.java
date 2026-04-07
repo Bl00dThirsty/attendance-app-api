@@ -20,6 +20,15 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Configure HTTP security rules and role matrix
+    ----------------------------------------------------------------
+    @parameter: HttpSecurity http
+    @Returnvalue: SecurityFilterChain
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -59,6 +68,15 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Register demo in-memory users and roles
+    ----------------------------------------------------------------
+    @parameter: PasswordEncoder passwordEncoder
+    @Returnvalue: UserDetailsService
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Bean
     UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
         return new InMemoryUserDetailsManager(
@@ -77,11 +95,29 @@ public class SecurityConfig {
         );
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Provide password hashing strategy
+    ----------------------------------------------------------------
+    @parameter: -
+    @Returnvalue: PasswordEncoder
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Configure CORS for API endpoints
+    ----------------------------------------------------------------
+    @parameter: -
+    @Returnvalue: CorsConfigurationSource
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
