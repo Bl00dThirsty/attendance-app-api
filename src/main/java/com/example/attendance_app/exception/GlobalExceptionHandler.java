@@ -1,5 +1,4 @@
 package com.example.attendance_app.exception;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -10,7 +9,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,10 +17,13 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            @Function Description: Handle resource-not-found errors
-            ----------------------------------------------------------------
-            @parameter: ResourceNotFoundException ex, HttpServletRequest request
-            @Returnvalue: ResponseEntity<ApiErrorResponse>
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Handle resource-not-found errors
+    ----------------------------------------------------------------
+    @parameter: ResourceNotFoundException ex, HttpServletRequest request
+    @Returnvalue: ResponseEntity<ApiErrorResponse>
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
@@ -30,10 +31,13 @@ public class GlobalExceptionHandler {
     }
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            @Function Description: Handle domain conflict errors
-            ----------------------------------------------------------------
-            @parameter: ConflictException ex, HttpServletRequest request
-            @Returnvalue: ResponseEntity<ApiErrorResponse>
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Handle domain conflict errors
+    ----------------------------------------------------------------
+    @parameter: ConflictException ex, HttpServletRequest request
+    @Returnvalue: ResponseEntity<ApiErrorResponse>
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiErrorResponse> handleConflict(ConflictException ex, HttpServletRequest request) {
@@ -41,10 +45,13 @@ public class GlobalExceptionHandler {
     }
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            @Function Description: Handle explicit bad-request errors
-            ----------------------------------------------------------------
-            @parameter: BadRequestException ex, HttpServletRequest request
-            @Returnvalue: ResponseEntity<ApiErrorResponse>
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Handle explicit bad-request errors
+    ----------------------------------------------------------------
+    @parameter: BadRequestException ex, HttpServletRequest request
+    @Returnvalue: ResponseEntity<ApiErrorResponse>
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiErrorResponse> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
@@ -52,10 +59,13 @@ public class GlobalExceptionHandler {
     }
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            @Function Description: Handle bean validation errors on DTO payloads
-            ----------------------------------------------------------------
-            @parameter: MethodArgumentNotValidException ex, HttpServletRequest request
-            @Returnvalue: ResponseEntity<ApiErrorResponse>
+    @Author:    John MANGA | Digit-Tech-Innov solutions and services
+    @Creation:  14.03.2026
+    ----------------------------------------------------------------
+    @Function Description: Handle bean validation errors on DTO payloads
+    ----------------------------------------------------------------
+    @parameter: MethodArgumentNotValidException ex, HttpServletRequest request
+    @Returnvalue: ResponseEntity<ApiErrorResponse>
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
