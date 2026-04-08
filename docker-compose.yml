@@ -1,4 +1,53 @@
 services:
+  attendance-db:
+    image: postgres:16-alpine
+    container_name: attendance-db
+    environment:
+      POSTGRES_DB: attendance_db
+      POSTGRES_USER: attendance_user
+      POSTGRES_PASSWORD: attendance_pass
+    volumes:
+      - attendance-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U attendance_user -d attendance_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_pass
+    volumes:
+      - auth-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    image: ${AUTH_SERVICE_IMAGE:-cale-auth-service:latest}
+    container_name: cale-auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: auth_user
+      SPRING_DATASOURCE_PASSWORD: auth_pass
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-ZXJwLWF1dGgtYW5kLWF0dGVuZGFuY2UtZGV2LXNlY3JldC1rZXktMzItYnl0ZXM=}
+      APP_BOOTSTRAP_ADMIN_USERNAME: ${APP_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      APP_BOOTSTRAP_ADMIN_EMAIL: ${APP_BOOTSTRAP_ADMIN_EMAIL:-admin@erp.local}
+      APP_BOOTSTRAP_ADMIN_PASSWORD: ${APP_BOOTSTRAP_ADMIN_PASSWORD:-admin123}
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    restart: unless-stopped
+
   attendance-api:
     build:
       context: .
@@ -7,13 +56,18 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/attendance_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-      SPRING_DATASOURCE_USERNAME: sa
-      SPRING_DATASOURCE_PASSWORD: ""
-    volumes:
-      - attendance-h2-data:/data
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://attendance-db:5432/attendance_db
+      SPRING_DATASOURCE_USERNAME: attendance_user
+      SPRING_DATASOURCE_PASSWORD: attendance_pass
+      APP_SECURITY_JWT_SECRET: ${APP_JWT_SECRET:-ZXJwLWF1dGgtYW5kLWF0dGVuZGFuY2UtZGV2LXNlY3JldC1rZXktMzItYnl0ZXM=}
+    depends_on:
+      attendance-db:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
-  attendance-h2-data:
-
+  attendance-postgres-data:
+  auth-postgres-data:
