@@ -1,5 +1,6 @@
 package com.example.attendance_app.service;
 
+import com.example.attendance_app.dto.common.PagedResponse;
 import com.example.attendance_app.dto.position.JobPositionCreateRequest;
 import com.example.attendance_app.dto.position.JobPositionResponse;
 import com.example.attendance_app.entity.JobPosition;
@@ -7,14 +8,27 @@ import com.example.attendance_app.exception.ConflictException;
 import com.example.attendance_app.exception.ResourceNotFoundException;
 import com.example.attendance_app.repository.EmployeeRepository;
 import com.example.attendance_app.repository.JobPositionRepository;
+import com.example.attendance_app.service.support.PageQuerySupport;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
 public class JobPositionService {
+    private static final Set<String> POSITION_SORT_FIELDS = Set.of(
+        "id",
+        "code",
+        "name",
+        "createdAt",
+        "updatedAt",
+        "active"
+    );
 
     private final JobPositionRepository jobPositionRepository;
     private final EmployeeRepository employeeRepository;
@@ -100,14 +114,44 @@ public class JobPositionService {
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             @Function Description: Retrieve all positions
             ----------------------------------------------------------------
-            @parameter: -
-            @Returnvalue: List<JobPositionResponse>
+            @parameter: query, active, page, size, sortBy, sortDir
+            @Returnvalue: PagedResponse<JobPositionResponse>
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
-    public List<JobPositionResponse> getPositions() {
-        return jobPositionRepository.findAll().stream()
-            .map(this::mapToResponse)
-            .toList();
+    public PagedResponse<JobPositionResponse> getPositions(
+        String query,
+        Boolean active,
+        int page,
+        int size,
+        String sortBy,
+        String sortDir
+    ) {
+        Pageable pageable = PageQuerySupport.buildPageable(
+            page,
+            size,
+            sortBy,
+            sortDir,
+            POSITION_SORT_FIELDS,
+            "createdAt",
+            Sort.Direction.DESC
+        );
+
+        Specification<JobPosition> specification = (root, criteriaQuery, cb) -> cb.conjunction();
+        if (query != null && !query.isBlank()) {
+            String keyword = "%" + query.trim().toLowerCase() + "%";
+            specification = specification.and((root, criteriaQuery, cb) -> cb.or(
+                cb.like(cb.lower(root.get("code")), keyword),
+                cb.like(cb.lower(root.get("name")), keyword),
+                cb.like(cb.lower(cb.coalesce(root.get("description"), "")), keyword)
+            ));
+        }
+        if (active != null) {
+            specification = specification.and((root, criteriaQuery, cb) -> cb.equal(root.get("active"), active));
+        }
+
+        Page<JobPositionResponse> result = jobPositionRepository.findAll(specification, pageable)
+            .map(this::mapToResponse);
+        return PagedResponse.from(result);
     }
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

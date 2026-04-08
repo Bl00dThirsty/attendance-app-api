@@ -2,8 +2,11 @@ package com.example.attendance_app.repository;
 
 import com.example.attendance_app.entity.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface EmployeeRepository extends JpaRepository<Employee, Long> {
+import java.util.Optional;
+
+public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSpecificationExecutor<Employee> {
 
     boolean existsByEmployeeCodeIgnoreCase(String employeeCode);
 
@@ -14,4 +17,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
 
     boolean existsByPositionId(Long positionId);
+
+    Optional<Employee> findByEmployeeCodeIgnoreCase(String employeeCode);
+
+    Optional<Employee> findByEmailIgnoreCase(String email);
 }

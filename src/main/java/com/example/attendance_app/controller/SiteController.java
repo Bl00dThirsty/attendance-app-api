@@ -1,9 +1,11 @@
 package com.example.attendance_app.controller;
 
+import com.example.attendance_app.dto.common.PagedResponse;
 import com.example.attendance_app.dto.site.SiteCreateRequest;
 import com.example.attendance_app.dto.site.SiteResponse;
 import com.example.attendance_app.service.SiteService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -14,10 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/sites")
@@ -88,8 +89,17 @@ public class SiteController {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping
     @Operation(summary = "List company sites")
-    public List<SiteResponse> getSites() {
-        return siteService.getSites();
+    public PagedResponse<SiteResponse> getSites(
+        @RequestParam(required = false, name = "q")
+        @Parameter(description = "Free-text search on code, name, and address")
+        String query,
+        @RequestParam(required = false) Boolean active,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size,
+        @RequestParam(defaultValue = "createdAt") String sortBy,
+        @RequestParam(defaultValue = "DESC") String sortDir
+    ) {
+        return siteService.getSites(query, active, page, size, sortBy, sortDir);
     }
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

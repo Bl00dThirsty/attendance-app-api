@@ -13,7 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "attendance_records")
@@ -32,7 +32,7 @@ public class AttendanceRecord {
     private CompanySite site;
 
     @Column(name = "arrival_time", nullable = false)
-    private LocalDateTime arrivalTime;
+    private Instant arrivalTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "check_in_source", nullable = false, length = 30)
@@ -55,11 +55,13 @@ public class AttendanceRecord {
     private String notes;
 
     @Column(name = "recorded_at", nullable = false, updatable = false)
-    private LocalDateTime recordedAt;
+    private Instant recordedAt;
 
     @PrePersist
     void prePersist() {
-        this.recordedAt = LocalDateTime.now();
+        if (this.recordedAt == null) {
+            this.recordedAt = Instant.now();
+        }
     }
 
     public Long getId() {
@@ -82,11 +84,11 @@ public class AttendanceRecord {
         this.site = site;
     }
 
-    public LocalDateTime getArrivalTime() {
+    public Instant getArrivalTime() {
         return arrivalTime;
     }
 
-    public void setArrivalTime(LocalDateTime arrivalTime) {
+    public void setArrivalTime(Instant arrivalTime) {
         this.arrivalTime = arrivalTime;
     }
 
@@ -138,7 +140,11 @@ public class AttendanceRecord {
         this.notes = notes;
     }
 
-    public LocalDateTime getRecordedAt() {
+    public Instant getRecordedAt() {
         return recordedAt;
+    }
+
+    public void setRecordedAt(Instant recordedAt) {
+        this.recordedAt = recordedAt;
     }
 }

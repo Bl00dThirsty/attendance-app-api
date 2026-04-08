@@ -1,9 +1,11 @@
 package com.example.attendance_app.controller;
 
+import com.example.attendance_app.dto.common.PagedResponse;
 import com.example.attendance_app.dto.employee.EmployeeCreateRequest;
 import com.example.attendance_app.dto.employee.EmployeeResponse;
 import com.example.attendance_app.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -13,11 +15,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -88,8 +89,19 @@ public class EmployeeController {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping
     @Operation(summary = "List employees")
-    public List<EmployeeResponse> getEmployees() {
-        return employeeService.getEmployees();
+    public PagedResponse<EmployeeResponse> getEmployees(
+        @RequestParam(required = false, name = "q")
+        @Parameter(description = "Free-text search on employee code, first name, last name, and email")
+        String query,
+        @RequestParam(required = false) Long departmentId,
+        @RequestParam(required = false) Long positionId,
+        @RequestParam(required = false) Boolean active,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size,
+        @RequestParam(defaultValue = "createdAt") String sortBy,
+        @RequestParam(defaultValue = "DESC") String sortDir
+    ) {
+        return employeeService.getEmployees(query, departmentId, positionId, active, page, size, sortBy, sortDir);
     }
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

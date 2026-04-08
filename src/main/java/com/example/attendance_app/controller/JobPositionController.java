@@ -1,9 +1,11 @@
 package com.example.attendance_app.controller;
 
+import com.example.attendance_app.dto.common.PagedResponse;
 import com.example.attendance_app.dto.position.JobPositionCreateRequest;
 import com.example.attendance_app.dto.position.JobPositionResponse;
 import com.example.attendance_app.service.JobPositionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -14,10 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/positions")
@@ -88,8 +89,17 @@ public class JobPositionController {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @GetMapping
     @Operation(summary = "List positions")
-    public List<JobPositionResponse> getPositions() {
-        return jobPositionService.getPositions();
+    public PagedResponse<JobPositionResponse> getPositions(
+        @RequestParam(required = false, name = "q")
+        @Parameter(description = "Free-text search on code, name, and description")
+        String query,
+        @RequestParam(required = false) Boolean active,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size,
+        @RequestParam(defaultValue = "createdAt") String sortBy,
+        @RequestParam(defaultValue = "DESC") String sortDir
+    ) {
+        return jobPositionService.getPositions(query, active, page, size, sortBy, sortDir);
     }
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
