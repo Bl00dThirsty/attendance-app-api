@@ -21,8 +21,9 @@ Authentication is now fully externalized in a dedicated repository:
 
 ## Profiles
 
-- `dev` (default): H2, Swagger enabled, Flyway enabled
-- `prod`: PostgreSQL, Flyway enabled, Swagger disabled
+- `dev` (default): H2, Swagger enabled, Flyway enabled, local fallback secrets
+- `test`: H2, Flyway enabled, deterministic test secrets
+- `prod`: PostgreSQL, Flyway enabled, Swagger disabled, secrets/env required
 
 ## Run attendance API (local dev)
 
@@ -43,6 +44,7 @@ docker build -t cale-auth-service:latest .
 
 ```powershell
 cd C:\Users\User\Documents\DEV\DEV-FREE\attendance-app-api
+# first time: copy .env.example to .env and set secure values
 docker compose up --build -d
 ```
 
@@ -66,6 +68,9 @@ Flyway migrations are versioned by database vendor:
 
 ## Important env vars
 
-- `APP_SECURITY_JWT_SECRET` (must match auth service signing secret)
+- `APP_SECURITY_JWT_SECRET` (required in `prod`, must match auth service signing secret)
+- `APP_SECURITY_CORS_ALLOWED_ORIGINS` (required in `prod`, comma-separated origins)
 - `SPRING_PROFILES_ACTIVE` (`dev` or `prod`)
 - `SPRING_DATASOURCE_*`
+
+For Docker Compose local runs, use `.env.example` as template and create a local `.env` file.
