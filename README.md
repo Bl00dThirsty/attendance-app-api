@@ -18,6 +18,8 @@ Authentication is now fully externalized in a dedicated repository:
 - This API is a JWT resource server.
 - It expects a Bearer token containing claim `roles` (`ADMIN`, `HR`, `EMPLOYEE`).
 - Authentication and token issuing are handled by the separate auth microservice.
+- CORS is allowlist-based and validated at startup.
+- In secure CORS mode (`prod`), origins must be HTTPS and localhost origins are rejected.
 
 ## Profiles
 
@@ -70,6 +72,12 @@ Flyway migrations are versioned by database vendor:
 
 - `APP_SECURITY_JWT_SECRET` (required in `prod`, must match auth service signing secret)
 - `APP_SECURITY_CORS_ALLOWED_ORIGINS` (required in `prod`, comma-separated origins)
+- `APP_SECURITY_CORS_ALLOWED_METHODS`
+- `APP_SECURITY_CORS_ALLOWED_HEADERS`
+- `APP_SECURITY_CORS_EXPOSED_HEADERS`
+- `APP_SECURITY_CORS_ALLOW_CREDENTIALS`
+- `APP_SECURITY_CORS_MAX_AGE_SECONDS`
+- `APP_SECURITY_CORS_ENFORCE_SECURE_POLICY` (`true` recommended in prod)
 - `SPRING_PROFILES_ACTIVE` (`dev` or `prod`)
 - `SPRING_DATASOURCE_*`
 
