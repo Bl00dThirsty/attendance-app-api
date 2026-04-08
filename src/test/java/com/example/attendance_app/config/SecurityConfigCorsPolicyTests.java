@@ -17,13 +17,18 @@ class SecurityConfigCorsPolicyTests {
             IllegalStateException.class,
             () -> new SecurityConfig(
                 TEST_JWT_SECRET,
+                "cale-auth-service",
+                "attendance-app-api",
                 List.of("http://localhost:4200"),
                 List.of("GET", "POST"),
                 List.of("Authorization", "Content-Type"),
                 List.of("Authorization"),
                 true,
                 3600,
-                true
+                true,
+                false,
+                false,
+                false
             )
         );
     }
@@ -34,13 +39,18 @@ class SecurityConfigCorsPolicyTests {
             IllegalStateException.class,
             () -> new SecurityConfig(
                 TEST_JWT_SECRET,
+                "cale-auth-service",
+                "attendance-app-api",
                 List.of("https://app.cale-erp.com"),
                 List.of("GET", "POST"),
                 List.of("*"),
                 List.of("Authorization"),
                 true,
                 3600,
-                true
+                true,
+                false,
+                false,
+                false
             )
         );
     }
@@ -50,13 +60,18 @@ class SecurityConfigCorsPolicyTests {
         assertDoesNotThrow(
             () -> new SecurityConfig(
                 TEST_JWT_SECRET,
+                "cale-auth-service",
+                "attendance-app-api",
                 List.of("https://app.cale-erp.com", "https://admin.cale-erp.com"),
                 List.of("GET", "POST", "OPTIONS"),
                 List.of("Authorization", "Content-Type", "Accept", "Origin"),
                 List.of("Authorization"),
                 true,
                 3600,
-                true
+                true,
+                false,
+                false,
+                false
             )
         );
     }

@@ -10,9 +10,13 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
@@ -28,11 +32,14 @@ import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @Configuration
 public class SecurityConfig {
 
     private final String jwtSecret;
+    private final String jwtIssuer;
+    private final String jwtAudience;
     private final List<String> corsAllowedOrigins;
     private final List<String> corsAllowedMethods;
     private final List<String> corsAllowedHeaders;
@@ -40,9 +47,14 @@ public class SecurityConfig {
     private final boolean corsAllowCredentials;
     private final long corsMaxAgeSeconds;
     private final boolean corsEnforceSecurePolicy;
+    private final boolean swaggerUiEnabled;
+    private final boolean apiDocsEnabled;
+    private final boolean h2ConsoleEnabled;
 
     public SecurityConfig(
         @Value("${app.security.jwt.secret}") String jwtSecret,
+        @Value("${app.security.jwt.issuer:cale-auth-service}") String jwtIssuer,
+        @Value("${app.security.jwt.audience:attendance-app-api}") String jwtAudience,
         @Value("#{'${app.security.cors.allowed-origins}'.split(',')}")
         List<String> corsAllowedOrigins,
         @Value("#{'${app.security.cors.allowed-methods:GET,POST,PUT,PATCH,DELETE,OPTIONS}'.split(',')}")
@@ -53,9 +65,14 @@ public class SecurityConfig {
         List<String> corsExposedHeaders,
         @Value("${app.security.cors.allow-credentials:true}") boolean corsAllowCredentials,
         @Value("${app.security.cors.max-age-seconds:3600}") long corsMaxAgeSeconds,
-        @Value("${app.security.cors.enforce-secure-policy:false}") boolean corsEnforceSecurePolicy
+        @Value("${app.security.cors.enforce-secure-policy:false}") boolean corsEnforceSecurePolicy,
+        @Value("${springdoc.swagger-ui.enabled:true}") boolean swaggerUiEnabled,
+        @Value("${springdoc.api-docs.enabled:true}") boolean apiDocsEnabled,
+        @Value("${spring.h2.console.enabled:false}") boolean h2ConsoleEnabled
     ) {
         this.jwtSecret = jwtSecret;
+        this.jwtIssuer = jwtIssuer;
+        this.jwtAudience = jwtAudience;
         this.corsAllowedOrigins = normalizeOrigins(corsAllowedOrigins);
         this.corsAllowedMethods = normalizeUpperValues(corsAllowedMethods);
         this.corsAllowedHeaders = normalizeValues(corsAllowedHeaders);
@@ -63,6 +80,9 @@ public class SecurityConfig {
         this.corsAllowCredentials = corsAllowCredentials;
         this.corsMaxAgeSeconds = corsMaxAgeSeconds;
         this.corsEnforceSecurePolicy = corsEnforceSecurePolicy;
+        this.swaggerUiEnabled = swaggerUiEnabled;
+        this.apiDocsEnabled = apiDocsEnabled;
+        this.h2ConsoleEnabled = h2ConsoleEnabled;
 
         validateCorsConfiguration();
     }
@@ -73,41 +93,67 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(Customizer.withDefaults())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**",
-                    "/h2-console/**"
-                ).permitAll()
-                .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/employees/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/employees/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/employees/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/employees/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers(HttpMethod.POST, "/api/departments/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/departments/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/departments/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/departments/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/positions/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/positions/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/positions/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/positions/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers(HttpMethod.POST, "/api/sites/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/sites/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/sites/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/sites/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
-                .requestMatchers(HttpMethod.POST, "/api/attendance/check-in").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
-                .requestMatchers(HttpMethod.GET, "/api/attendance/**").hasAnyRole("ADMIN", "HR")
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().permitAll()
-            )
+            .authorizeHttpRequests(authorize -> {
+                if (swaggerUiEnabled || apiDocsEnabled) {
+                    authorize.requestMatchers(
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
+                    ).permitAll();
+                } else {
+                    authorize.requestMatchers(
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
+                    ).denyAll();
+                }
+
+                if (h2ConsoleEnabled) {
+                    authorize.requestMatchers("/h2-console/**").permitAll();
+                } else {
+                    authorize.requestMatchers("/h2-console/**").denyAll();
+                }
+
+                authorize
+                    .requestMatchers("/actuator/health/**").permitAll()
+                    .requestMatchers("/actuator/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/employees/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/employees/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/employees/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/employees/**").hasAnyRole("ADMIN", "HR")
+                    .requestMatchers(HttpMethod.POST, "/api/departments/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/departments/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/departments/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/departments/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/positions/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/positions/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/positions/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/positions/**").hasAnyRole("ADMIN", "HR")
+                    .requestMatchers(HttpMethod.POST, "/api/sites/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/sites/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/sites/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/sites/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
+                    .requestMatchers(HttpMethod.POST, "/api/attendance/check-in").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
+                    .requestMatchers(HttpMethod.POST, "/api/attendance/**").hasAnyRole("ADMIN", "HR")
+                    .requestMatchers(HttpMethod.PUT, "/api/attendance/**").hasAnyRole("ADMIN", "HR")
+                    .requestMatchers(HttpMethod.PATCH, "/api/attendance/**").hasAnyRole("ADMIN", "HR")
+                    .requestMatchers(HttpMethod.DELETE, "/api/attendance/**").hasAnyRole("ADMIN", "HR")
+                    .requestMatchers(HttpMethod.GET, "/api/attendance/**").hasAnyRole("ADMIN", "HR")
+                    .requestMatchers("/api/**").authenticated()
+                    .anyRequest().permitAll();
+            })
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
             )
             .httpBasic(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
-            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
+            .headers(headers -> {
+                if (h2ConsoleEnabled) {
+                    headers.frameOptions(frameOptions -> frameOptions.sameOrigin());
+                } else {
+                    headers.frameOptions(frameOptions -> frameOptions.deny());
+                }
+            });
 
         return http.build();
     }
@@ -120,9 +166,23 @@ public class SecurityConfig {
 
     @Bean
     JwtDecoder jwtDecoder(SecretKey secretKey) {
-        return NimbusJwtDecoder.withSecretKey(secretKey)
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(secretKey)
             .macAlgorithm(MacAlgorithm.HS256)
             .build();
+
+        OAuth2TokenValidator<Jwt> issuerValidator = JwtValidators.createDefaultWithIssuer(jwtIssuer);
+        OAuth2TokenValidator<Jwt> audienceValidator = new JwtClaimValidator<>("aud", aud -> {
+            if (aud instanceof String audienceValue) {
+                return Objects.equals(audienceValue, jwtAudience);
+            }
+            if (aud instanceof List<?> audienceValues) {
+                return audienceValues.stream().anyMatch(value -> Objects.equals(String.valueOf(value), jwtAudience));
+            }
+            return false;
+        });
+
+        jwtDecoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(issuerValidator, audienceValidator));
+        return jwtDecoder;
     }
 
     @Bean

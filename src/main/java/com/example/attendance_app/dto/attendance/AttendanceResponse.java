@@ -3,7 +3,8 @@ package com.example.attendance_app.dto.attendance;
 import com.example.attendance_app.entity.AttendanceSource;
 import com.example.attendance_app.entity.AttendanceStatus;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 
 public record AttendanceResponse(
     Long id,
@@ -11,7 +12,8 @@ public record AttendanceResponse(
     String employeeCode,
     Long siteId,
     String siteCode,
-    LocalDateTime arrivalTime,
+    Instant arrivalTimeUtc,
+    OffsetDateTime arrivalTimeLocal,
     AttendanceSource checkInSource,
     AttendanceStatus status,
     Double latitude,
@@ -19,6 +21,8 @@ public record AttendanceResponse(
     Double distanceMeters,
     Boolean withinSiteRange,
     String notes,
-    LocalDateTime recordedAt
+    Instant recordedAtUtc,
+    OffsetDateTime recordedAtLocal,
+    String siteTimezone
 ) {
 }

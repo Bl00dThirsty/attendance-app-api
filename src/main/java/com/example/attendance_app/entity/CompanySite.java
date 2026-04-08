@@ -43,6 +43,9 @@ public class CompanySite {
     @Column(name = "geofence_radius_meters", nullable = false)
     private Integer geofenceRadiusMeters = 100;
 
+    @Column(nullable = false, length = 64)
+    private String timezone = "UTC";
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -54,6 +57,9 @@ public class CompanySite {
 
     @PrePersist
     void prePersist() {
+        if (this.timezone == null || this.timezone.isBlank()) {
+            this.timezone = "UTC";
+        }
         LocalDateTime now = LocalDateTime.now();
         this.createdAt = now;
         this.updatedAt = now;
@@ -61,6 +67,9 @@ public class CompanySite {
 
     @PreUpdate
     void preUpdate() {
+        if (this.timezone == null || this.timezone.isBlank()) {
+            this.timezone = "UTC";
+        }
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -114,6 +123,14 @@ public class CompanySite {
 
     public void setGeofenceRadiusMeters(Integer geofenceRadiusMeters) {
         this.geofenceRadiusMeters = geofenceRadiusMeters;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
     }
 
     public boolean isActive() {

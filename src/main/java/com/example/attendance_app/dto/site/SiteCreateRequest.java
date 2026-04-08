@@ -30,6 +30,9 @@ public record SiteCreateRequest(
     @Min(value = 1, message = "geofenceRadiusMeters must be at least 1")
     Integer geofenceRadiusMeters,
 
+    @Size(max = 64, message = "timezone must not exceed 64 characters")
+    String timezone,
+
     Boolean active
 ) {
 }

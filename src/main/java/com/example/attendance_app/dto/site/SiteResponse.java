@@ -10,6 +10,7 @@ public record SiteResponse(
     Double latitude,
     Double longitude,
     Integer geofenceRadiusMeters,
+    String timezone,
     boolean active,
     LocalDateTime createdAt,
     LocalDateTime updatedAt

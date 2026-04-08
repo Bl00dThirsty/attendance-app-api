@@ -1,5 +1,6 @@
 package com.example.attendance_app.service;
 
+import com.example.attendance_app.dto.common.PagedResponse;
 import com.example.attendance_app.dto.employee.EmployeeCreateRequest;
 import com.example.attendance_app.dto.employee.EmployeeResponse;
 import com.example.attendance_app.entity.Department;
@@ -11,14 +12,32 @@ import com.example.attendance_app.exception.ConflictException;
 import com.example.attendance_app.exception.ResourceNotFoundException;
 import com.example.attendance_app.repository.AttendanceRecordRepository;
 import com.example.attendance_app.repository.EmployeeRepository;
+import com.example.attendance_app.service.support.PageQuerySupport;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Transactional
 public class EmployeeService {
+    private static final Set<String> EMPLOYEE_SORT_FIELDS = Set.of(
+        "id",
+        "employeeCode",
+        "firstName",
+        "lastName",
+        "email",
+        "hireDate",
+        "createdAt",
+        "updatedAt",
+        "active",
+        "role"
+    );
 
     private final EmployeeRepository employeeRepository;
     private final DepartmentService departmentService;
@@ -114,14 +133,53 @@ public class EmployeeService {
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             @Function Description: Retrieve all employees
             ----------------------------------------------------------------
-            @parameter: -
-            @Returnvalue: List<EmployeeResponse>
+            @parameter: query, departmentId, positionId, active, page, size, sortBy, sortDir
+            @Returnvalue: PagedResponse<EmployeeResponse>
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @Transactional(readOnly = true)
-    public List<EmployeeResponse> getEmployees() {
-        return employeeRepository.findAll().stream()
-            .map(this::mapToResponse)
-            .toList();
+    public PagedResponse<EmployeeResponse> getEmployees(
+        String query,
+        Long departmentId,
+        Long positionId,
+        Boolean active,
+        int page,
+        int size,
+        String sortBy,
+        String sortDir
+    ) {
+        Pageable pageable = PageQuerySupport.buildPageable(
+            page,
+            size,
+            sortBy,
+            sortDir,
+            EMPLOYEE_SORT_FIELDS,
+            "createdAt",
+            Sort.Direction.DESC
+        );
+
+        Specification<Employee> specification = (root, criteriaQuery, cb) -> cb.conjunction();
+        if (query != null && !query.isBlank()) {
+            String keyword = "%" + query.trim().toLowerCase() + "%";
+            specification = specification.and((root, criteriaQuery, cb) -> cb.or(
+                cb.like(cb.lower(root.get("employeeCode")), keyword),
+                cb.like(cb.lower(root.get("firstName")), keyword),
+                cb.like(cb.lower(root.get("lastName")), keyword),
+                cb.like(cb.lower(root.get("email")), keyword)
+            ));
+        }
+        if (departmentId != null) {
+            specification = specification.and((root, criteriaQuery, cb) -> cb.equal(root.get("department").get("id"), departmentId));
+        }
+        if (positionId != null) {
+            specification = specification.and((root, criteriaQuery, cb) -> cb.equal(root.get("position").get("id"), positionId));
+        }
+        if (active != null) {
+            specification = specification.and((root, criteriaQuery, cb) -> cb.equal(root.get("active"), active));
+        }
+
+        Page<EmployeeResponse> result = employeeRepository.findAll(specification, pageable)
+            .map(this::mapToResponse);
+        return PagedResponse.from(result);
     }
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -134,6 +192,30 @@ public class EmployeeService {
     public Employee getEmployeeEntity(Long id) {
         return employeeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Employee not found: " + id));
+    }
+
+    /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            @Function Description: Resolve employee id from external identity identifiers
+            ----------------------------------------------------------------
+            @parameter: String identifier (employeeCode or email)
+            @Returnvalue: Optional<Long>
+    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+    @Transactional(readOnly = true)
+    public Optional<Long> resolveEmployeeIdByIdentifier(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return Optional.empty();
+        }
+
+        String trimmedIdentifier = identifier.trim();
+        Optional<Long> byEmployeeCode = employeeRepository.findByEmployeeCodeIgnoreCase(trimmedIdentifier)
+            .map(Employee::getId);
+        if (byEmployeeCode.isPresent()) {
+            return byEmployeeCode;
+        }
+
+        String normalizedEmail = trimmedIdentifier.toLowerCase();
+        return employeeRepository.findByEmailIgnoreCase(normalizedEmail)
+            .map(Employee::getId);
     }
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

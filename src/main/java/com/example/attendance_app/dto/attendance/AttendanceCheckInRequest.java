@@ -1,13 +1,12 @@
 package com.example.attendance_app.dto.attendance;
 
 import com.example.attendance_app.entity.AttendanceSource;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record AttendanceCheckInRequest(
     @NotNull(message = "employeeId is required")
@@ -16,8 +15,7 @@ public record AttendanceCheckInRequest(
     @NotNull(message = "siteId is required")
     Long siteId,
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    LocalDateTime arrivalTime,
+    OffsetDateTime arrivalTime,
 
     AttendanceSource checkInSource,
 
