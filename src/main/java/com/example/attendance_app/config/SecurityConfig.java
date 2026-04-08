@@ -34,7 +34,7 @@ public class SecurityConfig {
 
     public SecurityConfig(
         @Value("${app.security.jwt.secret}") String jwtSecret,
-        @Value("#{'${app.security.cors.allowed-origins:http://localhost:4200,http://127.0.0.1:4200}'.split(',')}")
+        @Value("#{'${app.security.cors.allowed-origins}'.split(',')}")
         List<String> corsAllowedOrigins
     ) {
         this.jwtSecret = jwtSecret;
