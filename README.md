@@ -21,7 +21,7 @@ Authentication is now fully externalized in a dedicated repository:
 
 ## Profiles
 
-- `dev` (default): H2, Swagger enabled, Flyway disabled
+- `dev` (default): H2, Swagger enabled, Flyway enabled
 - `prod`: PostgreSQL, Flyway enabled, Swagger disabled
 
 ## Run attendance API (local dev)
@@ -58,6 +58,11 @@ The compose file starts:
 ```powershell
 .\mvnw.cmd test
 ```
+
+Flyway migrations are versioned by database vendor:
+
+- `src/main/resources/db/migration/postgresql`
+- `src/main/resources/db/migration/h2`
 
 ## Important env vars
 
