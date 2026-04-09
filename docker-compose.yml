@@ -81,11 +81,33 @@ services:
       APP_ATTENDANCE_RULES_ENFORCE_DAILY_WINDOW: ${APP_ATTENDANCE_RULES_ENFORCE_DAILY_WINDOW:-true}
       APP_ATTENDANCE_RULES_DAILY_WINDOW_START: ${APP_ATTENDANCE_RULES_DAILY_WINDOW_START:-04:00}
       APP_ATTENDANCE_RULES_DAILY_WINDOW_END: ${APP_ATTENDANCE_RULES_DAILY_WINDOW_END:-23:00}
+      APP_OBSERVABILITY_ENVIRONMENT: ${APP_OBSERVABILITY_ENVIRONMENT:-prod}
+      APP_OBSERVABILITY_HTTP_ACCESS_LOG_ENABLED: ${APP_OBSERVABILITY_HTTP_ACCESS_LOG_ENABLED:-true}
+      APP_OBSERVABILITY_TRACING_ENABLED: ${APP_OBSERVABILITY_TRACING_ENABLED:-true}
+      APP_OBSERVABILITY_TRACING_SAMPLING_PROBABILITY: ${APP_OBSERVABILITY_TRACING_SAMPLING_PROBABILITY:-0.15}
+      APP_OBSERVABILITY_OTLP_ENDPOINT: ${APP_OBSERVABILITY_OTLP_ENDPOINT:-http://otel-collector:4318/v1/traces}
+      APP_OBSERVABILITY_LOG_LEVEL_ROOT: ${APP_OBSERVABILITY_LOG_LEVEL_ROOT:-INFO}
+      APP_OBSERVABILITY_LOG_LEVEL_APP: ${APP_OBSERVABILITY_LOG_LEVEL_APP:-INFO}
+      APP_OBSERVABILITY_LOG_LEVEL_SPRING: ${APP_OBSERVABILITY_LOG_LEVEL_SPRING:-INFO}
+      APP_OBSERVABILITY_LOG_LEVEL_HIBERNATE: ${APP_OBSERVABILITY_LOG_LEVEL_HIBERNATE:-WARN}
     depends_on:
       attendance-db:
         condition: service_healthy
       auth-service:
         condition: service_started
+      otel-collector:
+        condition: service_started
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.108.0
+    container_name: otel-collector
+    command:
+      - "--config=/etc/otelcol-contrib/config.yaml"
+    volumes:
+      - ./infra/otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4318:4318"
     restart: unless-stopped
 
 volumes:

@@ -1,6 +1,9 @@
 package com.example.attendance_app.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +13,13 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @Author:    John MANGA | Digit-Tech-Innov solutions and services
@@ -28,6 +32,7 @@ public class GlobalExceptionHandler {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        LOGGER.warn("resource_not_found path={} message={}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null);
     }
 
@@ -42,6 +47,7 @@ public class GlobalExceptionHandler {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiErrorResponse> handleConflict(ConflictException ex, HttpServletRequest request) {
+        LOGGER.warn("domain_conflict path={} message={}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI(), null);
     }
 
@@ -56,6 +62,7 @@ public class GlobalExceptionHandler {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiErrorResponse> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
+        LOGGER.warn("bad_request path={} message={}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI(), null);
     }
 
@@ -75,6 +82,7 @@ public class GlobalExceptionHandler {
             // Keep the first message per field to avoid noisy duplicated keys.
             validationErrors.putIfAbsent(fieldError.getField(), fieldError.getDefaultMessage());
         }
+        LOGGER.warn("validation_failed path={} errors={}", request.getRequestURI(), validationErrors);
 
         return buildResponse(
             HttpStatus.BAD_REQUEST,
@@ -95,6 +103,7 @@ public class GlobalExceptionHandler {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+        LOGGER.warn("constraint_violation path={} message={}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI(), null);
     }
 
@@ -109,11 +118,13 @@ public class GlobalExceptionHandler {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        LOGGER.warn("malformed_payload path={} message={}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.BAD_REQUEST, "Malformed request payload", request.getRequestURI(), null);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        LOGGER.warn("access_denied path={} message={}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI(), null);
     }
 
@@ -128,6 +139,9 @@ public class GlobalExceptionHandler {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
+        Throwable mostSpecificCause = ex.getMostSpecificCause();
+        String details = mostSpecificCause == null ? ex.getMessage() : mostSpecificCause.getMessage();
+        LOGGER.warn("data_integrity_violation path={} message={}", request.getRequestURI(), details);
         return buildResponse(HttpStatus.CONFLICT, "Request conflicts with existing data", request.getRequestURI(), null);
     }
 
@@ -142,6 +156,7 @@ public class GlobalExceptionHandler {
     ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnhandled(Exception ex, HttpServletRequest request) {
+        LOGGER.error("unexpected_server_error path={}", request.getRequestURI(), ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error", request.getRequestURI(), null);
     }
 
@@ -160,12 +175,14 @@ public class GlobalExceptionHandler {
         String path,
         Map<String, String> validationErrors
     ) {
+        String traceId = MDC.get("traceId");
         ApiErrorResponse response = new ApiErrorResponse(
-            LocalDateTime.now(),
+            Instant.now(),
             status.value(),
             status.getReasonPhrase(),
             message,
             path,
+            traceId,
             validationErrors
         );
         return ResponseEntity.status(status).body(response);
