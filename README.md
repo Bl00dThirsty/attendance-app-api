@@ -95,6 +95,18 @@ Main env vars:
 - Correction/cancellation operations require a non-empty `reason`.
 - Access policy: only `ADMIN` and `HR` can correct, cancel, and view audit trail.
 
+## Observability (feature 13)
+
+- Structured JSON logs via Logback (`timestamp`, `level`, `message`, `traceId`, `spanId`, `requestId`).
+- HTTP access logs include method/path/status/duration/client IP/user-agent.
+- Distributed tracing enabled through Micrometer + OpenTelemetry OTLP exporter.
+- Actuator probes/metrics:
+  - `GET /actuator/health/liveness`
+  - `GET /actuator/health/readiness`
+  - `GET /actuator/metrics`
+  - `GET /actuator/prometheus` (secured by role `ADMIN`)
+- Common telemetry tags are injected (`service`, `environment`).
+
 ## Security model
 
 - This API is a JWT resource server.
@@ -141,11 +153,45 @@ The compose file starts:
 - `auth-db` (PostgreSQL)
 - `cale-auth-service` (from external image)
 - `attendance-app-api`
+- `otel-collector` (OTLP traces collector for local observability)
 
 ## Build and test
 
 ```powershell
 .\mvnw.cmd test
+```
+
+## Test strategy (feature 14)
+
+Current automated coverage is organized in 3 layers:
+
+- Unit/service tests:
+  - `AttendanceServiceBusinessRulesTests`
+  - `AttendanceSelfCheckInAuthorizationTests`
+  - `AttendanceIdempotencyDuplicateTests`
+  - `AttendanceAuditTrailTests`
+- Security integration tests (real Spring Security filter chain):
+  - `AttendanceSecurityIntegrationTests`
+- PostgreSQL integration tests with Testcontainers:
+  - `AttendancePostgresContainerIntegrationTests`
+  - validates Flyway schema + DB constraints on real Postgres
+
+Notes:
+
+- Testcontainers tests are annotated with `@Testcontainers(disabledWithoutDocker = true)`:
+  - if Docker is unavailable locally, these tests are skipped
+  - in CI (with Docker service), they should run and pass
+
+Run only security integration tests:
+
+```powershell
+.\mvnw.cmd -Dtest=AttendanceSecurityIntegrationTests test
+```
+
+Run only Postgres Testcontainers tests:
+
+```powershell
+.\mvnw.cmd -Dtest=AttendancePostgresContainerIntegrationTests test
 ```
 
 Flyway migrations are versioned by database vendor:
@@ -165,6 +211,15 @@ Flyway migrations are versioned by database vendor:
 - `APP_SECURITY_CORS_ALLOW_CREDENTIALS`
 - `APP_SECURITY_CORS_MAX_AGE_SECONDS`
 - `APP_SECURITY_CORS_ENFORCE_SECURE_POLICY` (`true` recommended in prod)
+- `APP_OBSERVABILITY_ENVIRONMENT` (`dev`, `test`, `prod`)
+- `APP_OBSERVABILITY_HTTP_ACCESS_LOG_ENABLED` (`true`/`false`)
+- `APP_OBSERVABILITY_TRACING_ENABLED` (`true`/`false`)
+- `APP_OBSERVABILITY_TRACING_SAMPLING_PROBABILITY` (ex: `0.15`)
+- `APP_OBSERVABILITY_OTLP_ENDPOINT` (ex: `http://otel-collector:4318/v1/traces`)
+- `APP_OBSERVABILITY_LOG_LEVEL_ROOT`
+- `APP_OBSERVABILITY_LOG_LEVEL_APP`
+- `APP_OBSERVABILITY_LOG_LEVEL_SPRING`
+- `APP_OBSERVABILITY_LOG_LEVEL_HIBERNATE`
 - `SPRING_PROFILES_ACTIVE` (`dev` or `prod`)
 - `SPRING_DATASOURCE_*`
 
