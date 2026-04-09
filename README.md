@@ -161,6 +161,39 @@ The compose file starts:
 .\mvnw.cmd test
 ```
 
+## Test strategy (feature 14)
+
+Current automated coverage is organized in 3 layers:
+
+- Unit/service tests:
+  - `AttendanceServiceBusinessRulesTests`
+  - `AttendanceSelfCheckInAuthorizationTests`
+  - `AttendanceIdempotencyDuplicateTests`
+  - `AttendanceAuditTrailTests`
+- Security integration tests (real Spring Security filter chain):
+  - `AttendanceSecurityIntegrationTests`
+- PostgreSQL integration tests with Testcontainers:
+  - `AttendancePostgresContainerIntegrationTests`
+  - validates Flyway schema + DB constraints on real Postgres
+
+Notes:
+
+- Testcontainers tests are annotated with `@Testcontainers(disabledWithoutDocker = true)`:
+  - if Docker is unavailable locally, these tests are skipped
+  - in CI (with Docker service), they should run and pass
+
+Run only security integration tests:
+
+```powershell
+.\mvnw.cmd -Dtest=AttendanceSecurityIntegrationTests test
+```
+
+Run only Postgres Testcontainers tests:
+
+```powershell
+.\mvnw.cmd -Dtest=AttendancePostgresContainerIntegrationTests test
+```
+
 Flyway migrations are versioned by database vendor:
 
 - `src/main/resources/db/migration/postgresql`
